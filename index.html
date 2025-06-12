@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WageWatcher – Real-Time Earnings + Points</title>
+  <style>
+    :root {
+      --bg-light: #f0f4f0;
+      --bg-dark: #1e1e1e;
+      --text-light: #333;
+      --text-dark: #eee;
+      --card-light: white;
+      --card-dark: #2a2a2a;
+      --highlight: #2e8b57;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-light);
+      color: var(--text-light);
+      transition: background 0.5s, color 0.5s;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    #mainContainer {
+      max-width: 700px;
+      width: 100%;
+      background: var(--card-light);
+      border-radius: 15px;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+      padding: 30px 40px;
+      box-sizing: border-box;
+      transition: background 0.5s;
+    }
+
+    body.dark #mainContainer {
+      background: var(--card-dark);
+    }
+
+    nav {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: var(--highlight);
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--highlight);
+      margin-bottom: 5px;
+    }
+
+    p.subheading {
+      text-align: center;
+      color: #555;
+      margin-bottom: 25px;
+    }
+
+    .earnings-container {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .earnings-box {
+      display: inline-block;
+      width: 45%;
+      padding: 15px;
+      margin: 10px;
+      background: #eaf6ea;
+      border: 2px solid var(--highlight);
+      border-radius: 10px;
+    }
+
+    .earnings-box div:first-child {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    #earnings, #earningsAfterTax {
+      font-weight: bold;
+      font-size: 2.2em;
+      color: var(--highlight);
+    }
+
+    .label-above {
+      font-size: 1em;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    #nightModeToggle {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 100;
+      padding: 10px 15px;
+      background: var(--highlight);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #nightModeToggle:hover {
+      background: #256b44;
+    }
+  </style>
+</head>
+<body>
+
+<button id="nightModeToggle">🌙 Night Mode</button>
+
+<div id="mainContainer">
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Log</a>
+    <a href="#">About</a>
+  </nav>
+
+  <h1>WageWatcher</h1>
+  <p class="subheading">Mock Pay Counter – 7:30 AM to 4:00 PM at $17/hour</p>
+
+  <div class="earnings-container">
+    <div class="earnings-box">
+      <div class="label-above">Earnings (Before Tax)</div>
+      <div id="earnings">$0.00</div>
+    </div>
+    <div class="earnings-box">
+      <div class="label-above">Earnings (After 10.51% Tax)</div>
+      <div id="earningsAfterTax">$0.00</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const earningsEl = document.getElementById('earnings');
+  const earningsAfterTaxEl = document.getElementById('earningsAfterTax');
+  const hourlyRate = 17;
+  const taxRate = 0.1051;
+  const startHour = 7, startMinute = 30;
+  const endHour = 16, endMinute = 0;
+
+  function getStartTime() {
+    const t = new Date();
+    t.setHours(startHour, startMinute, 0, 0);
+    return t;
+  }
+
+  function getEndTime() {
+    const t = new Date();
+    t.setHours(endHour, endMinute, 0, 0);
+    return t;
+  }
+
+  function updateEarnings() {
+    const now = new Date();
+    const start = getStartTime();
+    const end = getEndTime();
+    let earned = 0;
+
+    if (now > start && now < end) {
+      earned = ((now - start) / (1000 * 60 * 60)) * hourlyRate;
+    } else if (now >= end) {
+      earned = ((end - start) / (1000 * 60 * 60)) * hourlyRate;
+    }
+
+    earningsEl.textContent = `$${earned.toFixed(2)}`;
+    earningsAfterTaxEl.textContent = `$${(earned * (1 - taxRate)).toFixed(2)}`;
+  }
+
+  updateEarnings();
+  setInterval(updateEarnings, 1000);
+
+  // Night mode toggle
+  const toggleBtn = document.getElementById('nightModeToggle');
+  const body = document.body;
+
+  function setNightMode(isNight) {
+    body.classList.toggle('dark', isNight);
+    localStorage.setItem('nightMode', isNight ? 'true' : 'false');
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    const isDark = body.classList.contains('dark');
+    setNightMode(!isDark);
+  });
+
+  if (localStorage.getItem('nightMode') === 'true') {
+    setNightMode(true);
+  }
+</script>
+
+</body>
+</html>
