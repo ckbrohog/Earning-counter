@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Earnings Counter - WageWatcher</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #f7f9f7;
+      font-family: Arial, sans-serif;
+      color: #333;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    #mainContainer {
+      max-width: 700px;
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      padding: 30px 40px;
+      box-sizing: border-box;
+    }
+
+    nav {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: #2e8b57;
+      font-weight: 600;
+      font-size: 1.2em;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2e8b57;
+      margin-bottom: 8px;
+    }
+    p {
+      text-align: center;
+      font-size: 1.1em;
+      margin-top: 0;
+      margin-bottom: 25px;
+      color: #555;
+    }
+
+    .earnings-container {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .earnings-box {
+      display: inline-block;
+      width: 45%;
+      padding: 15px 20px;
+      margin: 0 10px;
+      border: 2px solid #2e8b57;
+      border-radius: 8px;
+      background-color: #eaf6ea;
+      box-sizing: border-box;
+    }
+    #earnings, #earningsAfterTax {
+      font-weight: bold;
+      font-size: 2.4em;
+      color: #2e8b57;
+    }
+
+    #deliveryContainer {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    #deliveryContainer h2 {
+      margin-bottom: 15px;
+    }
+    #deliveryCount {
+      font-size: 2.4em;
+      margin: 0 20px;
+      display: inline-block;
+      min-width: 50px;
+    }
+    button {
+      font-size: 1.5em;
+      padding: 10px 20px;
+      margin: 10px 5px;
+      border: none;
+      border-radius: 8px;
+      background-color: #2e8b57;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #246b44;
+    }
+    #addDeliveryBtn {
+      display: block;
+      margin: 30px auto 0;
+      padding: 15px 40px;
+      font-size: 1.8em;
+      font-weight: bold;
+    }
+
+    #popupMessage {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #2e8b57;
+      color: white;
+      font-size: 2em;
+      padding: 20px 40px;
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease-in-out;
+      z-index: 1000;
+    }
+    #popupMessage.show {
+      opacity: 1;
+    }
+
+    #manualEntryBox {
+      margin-top: 40px;
+      background-color: #111;
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    #manualEntryBox label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 1.2em;
+    }
+    #manualEntryInput {
+      padding: 10px;
+      font-size: 1.2em;
+      width: 80%;
+      max-width: 300px;
+      border-radius: 6px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="mainContainer">
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="log.html">Log</a>
+    <a href="about.html">About Us</a>
+  </nav>
+
+  <h1>Real-Time Earnings Counter</h1>
+  <p>From 7:30 AM to 4:00 PM at $17/hour</p>
+
+  <div class="earnings-container">
+    <div class="earnings-box">
+      <div>Earnings (Before Tax)</div>
+      <div id="earnings">$0.00</div>
+    </div>
+    <div class="earnings-box">
+      <div>Earnings (After 10.51% Tax)</div>
+      <div id="earningsAfterTax">$0.00</div>
+    </div>
+  </div>
+
+  <div id="deliveryContainer">
+    <h2>Delive
