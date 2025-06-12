@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Earnings Counter - WageWatcher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* Base Reset & Body */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: #f7f9f7;
+      color: #333;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.dark-mode {
+      background: #121212;
+      color: #eee;
+    }
+
+    /* Layout Centering */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    /* Container */
+    #mainContainer {
+      max-width: 600px;
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      padding: 30px 40px 50px;
+      box-sizing: border-box;
+      transition: background-color 0.3s ease;
+    }
+    body.dark-mode #mainContainer {
+      background-color: #1e1e1e;
+    }
+
+    /* Navigation */
+    nav {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: #2e8b57;
+      font-weight: 600;
+      font-size: 1.2em;
+    }
+
+    /* Headings & Paragraphs */
+    h1, h2 {
+      text-align: center;
+      color: #2e8b57;
+    }
+    p {
+      text-align: center;
+      font-size: 1.1em;
+      color: #555;
+    }
+
+    /* Earnings Section */
+    .earnings-container {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .earnings-box {
+      display: inline-block;
+      width: 45%;
+      padding: 15px 20px;
+      margin: 0 10px;
+      border: 2px solid #2e8b57;
+      border-radius: 8px;
+      background-color: #eaf6ea;
+      box-sizing: border-box;
+    }
+    body.dark-mode .earnings-box {
+      background-color: #2b3b2b;
+      border-color: #4caf50;
+    }
+
+    #earnings, #earningsAfterTax {
+      font-weight: bold;
+      font-size: 2.4em;
+      color: #2e8b57;
+    }
+
+    /* Delivery Controls */
+    #deliveryContainer {
+      text-align: center;
+    }
+    #deliveryCount {
+      font-size: 2.4em;
+      margin: 0 20px;
+      display: inline-block;
+      min-width: 50px;
+    }
+
+    button {
+      font-size: 1.2em;
+      padding: 10px 20px;
+      margin: 10px 5px;
+      border: none;
+      border-radius: 8px;
+      background-color: #2e8b57;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    button:hover,
+    button:focus {
+      background-color: #246b44;
+      outline: 2px solid #4caf50;
+    }
+    #addDeliveryBtn {
+      display: block;
+      margin: 30px auto 0;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    /* Dark Mode Toggle */
+    #toggleDarkMode {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 0.9em;
+      padding: 6px 14px;
+      background-color: #444;
+    }
+
+    /* Popup Message */
+    #popupMessage {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #2e8b57;
+      color: white;
+      font-size: 2em;
+      padding: 20px 40px;
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease-in-out;
+      z-index: 1000;
+    }
+    #popupMessage.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 640px) {
+      .earnings-box {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+      nav a {
+        display: block;
+        margin: 10px 0;
+      }
+      button {
+        font-size: 1em;
+        padding: 8px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button id="toggleDarkMode" aria-label="Toggle dark mode">🌓 Toggle Mode</button>
+
+  <div id="mainContainer">
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="log.html">Log</a>
+      <a href="about.html">About Us</a>
+    </nav>
+
+    <h1>Real-Time Earnings Counter</h1>
+    <p>From 7:30 AM to 4:00 PM at $17/hour (+$3/delivery)</p>
+
+    <div class="earnings-container">
+      <div class="earnings-box">
+        <div>Earnings (Before Tax)</div>
+        <div id="earnings">$0.00</div>
+      </div>
+      <div class="earnings-box">
+        <div>Earnings (After 10.51% Tax)</div>
+        <div id="earningsAfterTax">$0.00</div>
+      </div>
+    </div>
+
+    <div id="deliveryContainer">
+      <h2>Deliveries Made</h2>
+      <button id="decreaseDeliveryBtn" aria-label="Subtract one delivery">-</button>
+      <span id="deliveryCount" aria-live="polite" aria-atomic="true">0</span>
+      <button id="increaseDeliveryBtn" aria-label="Add one delivery">+</button>
+      <button id="addDeliveryBtn" aria-label="Add delivery with popup">Add Delivery</button>
+    </div>
+  </div>
+
+  <div id="popupMessage" role="alert" aria-live="assertive"></div>
+
+  <script>
+    const hourlyRate = 17;
+    const taxRate = 0.1051;
+    const deliveryBonus = 3;
+    const startHour = 7, startMinute = 30;
+    const endHour = 16, endMinute = 0;
+
+    let deliveries = parseInt(localStorage.getItem("deliveries")) || 0;
+    const positiveMessages = ["Cool!", "Nice!", "Keep going!", "Great job!", "Awesome!"];
+    const popupMessage = document.getElementById('popupMessage');
+    const earningsEl = document.getElementById('earnings');
+    const earningsAfterTaxEl = document.getElementById('earningsAfterTax');
+    const deliveryCountEl = document.getElementById('deliveryCount');
+    const increaseBtn = document.getElementById('increaseDeliveryBtn');
+    const decreaseBtn = document.getElementById('decreaseDeliveryBtn');
+    const addBtn = document.getElementById('addDeliveryBtn');
+    const darkToggleBtn = document.getElementById('toggleDarkMode');
+
+    // Time utilities
+    function getStartTime() {
+      const t = new Date();
+      t.setHours(startHour, startMinute, 0, 0);
+      return t;
+    }
+    function getEndTime() {
+      const t = new Date();
+      t.setHours(endHour, endMinute, 0, 0);
+      return t;
+    }
+
+    function updateEarnings() {
+      const now = new Date();
+      const startTime = getStartTime();
+      const endTime = getEndTime();
+      let baseEarnings = 0;
+
+      if (now < startTime) baseEarnings = 0;
+      else if (now > endTime) baseEarnings = (endTime - startTime) / (1000 * 60 * 60) * hourlyRate;
+      else baseEarnings = (now - startTime) / (1000 * 60 * 60) * hourlyRate;
+
+      const deliveryEarnings = deliveries * deliveryBonus;
+      const totalEarnings = baseEarnings + deliveryEarnings;
+      const afterTax = totalEarnings * (1 - taxRate);
+
+      earningsEl.textContent = `$${totalEarnings.toFixed(2)}`;
+      earningsAfterTaxEl.textContent = `$${afterTax.toFixed(2)}`;
+    }
+
+    function updateDeliveryCount() {
+      if (deliveries < 0) deliveries = 0;
+      deliveryCountEl.textContent = deliveries;
+      localStorage.setItem("deliveries", deliveries);
+    }
+
+    function showPopupMessage() {
+      const msg = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
+      popupMessage.textContent = msg;
+      popupMessage.classList.add('show');
+      setTimeout(() => popupMessage.classList.remove('show'), 1300);
+    }
+
+    function adjustDeliveries(amount) {
+      deliveries += amount;
+      if (deliveries < 0) deliveries = 0;
+      updateDeliveryCount();
+    }
+
+    // Event listeners
+    increaseBtn.addEventListener('click', () => adjustDeliveries(1));
+    decreaseBtn.addEventListener('click', () => adjustDeliveries(-1));
+    addBtn.addEventListener('click', () => {
+      adjustDeliveries(1);
+      showPopupMessage();
+    });
+
+    darkToggleBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem("darkMode", document.body.classList.contains('dark-mode'));
+    });
+
+    // Load dark mode state
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark-mode");
+    }
+
+    setInterval(updateEarnings, 1000);
+    updateEarnings();
+    updateDeliveryCount();
+  </script>
+</body>
+</html>
