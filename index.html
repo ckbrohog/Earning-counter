@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Earnings Counter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        h1 {
+            color: #2e8b57;
+        }
+        h2 {
+            font-size: 2em;
+            color: #333;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        #quote {
+            font-style: italic;
+            margin-top: 20px;
+            color: #555;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Earnings Counter</h1>
+    <p>Select a weekday to see earnings (7:30 AM – 4:00 PM at $17/hour):</p>
+
+    <select id="daySelector">
+        <option value="1">Monday</option>
+        <option value="2">Tuesday</option>
+        <option value="3">Wednesday</option>
+        <option value="4">Thursday</option>
+        <option value="5">Friday</option>
+    </select>
+
+    <h2>Earnings: $<span id="earnings">0.00</span></h2>
+    <p id="quote">"Stay positive. Work hard. Make it happen."</p>
+
+    <script>
+        const hourlyRate = 17;
+        const earningsEl = document.getElementById('earnings');
+        const daySelector = document.getElementById('daySelector');
+        const quoteEl = document.getElementById('quote');
+
+        const quotes = {
+            1: "“Success is the sum of small efforts repeated day in and day out.” – Robert Collier",
+            2: "“Don’t watch the clock; do what it does. Keep going.” – Sam Levenson",
+            3: "“The secret of getting ahead is getting started.” – Mark Twain",
+            4: "“Push yourself, because no one else is going to do it for you.”",
+            5: "“Make each day your masterpiece.” – John Wooden"
+        };
+
+        function updateQuote(day) {
+            quoteEl.textContent = quotes[day] || "Have a great day!";
+        }
+
+        function updateEarnings() {
+            const now = new Date();
+            const selectedDay = parseInt(daySelector.value); // 1 = Monday, ..., 5 = Friday
+            const todayDay = now.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
+
+            // Set virtual selected date as today for simplicity
+            const selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            const startTime = new Date(selectedDate);
+            startTime.setHours(7, 30, 0, 0);
+
+            const endTime = new Date(selectedDate);
+            endTime.setHours(16, 0, 0, 0);
+
+            let earnings = 0;
+
+            if (selectedDay === todayDay) {
+                // Today is selected
+                if (now < startTime) {
+                    earnings = 0;
+                } else if (now > endTime) {
+                    earnings = (endTime - startTime) / (1000 * 60 * 60) * hourlyRate;
+                } else {
+                    const hoursWorked = (now - startTime) / (1000 * 60 * 60);
+                    earnings = hoursWorked * hourlyRate;
+                }
+            } else {
+                // Other day selected — show full workday earnings
+                earnings = (endTime - startTime) / (1000 * 60 * 60) * hourlyRate;
+            }
+
+            earningsEl.textContent = earnings.toFixed(2);
+        }
+
+        // Update every second
+        setInterval(updateEarnings, 1000);
+        updateEarnings();
+
+        // When day is changed
+        daySelector.addEventListener('change', () => {
+            updateQuote(daySelector.value);
+            updateEarnings();
+        });
+
+        // Set default selected day to today
+        const todayDay = new Date().getDay();
+        if (todayDay >= 1 && todayDay <= 5) {
+            daySelector.value = todayDay.toString();
+            updateQuote(todayDay);
+        } else {
+            // Default to Monday if weekend
+            daySelector.value = "1";
+            updateQuote(1);
+        }
+    </script>
+</body>
+</html>
