@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Earnings Counter</title>
+</head>
+<body>
+    <h1>Real-Time Earnings Counter</h1>
+    <p>From 7:30 AM to 4:00 PM at $17/hour</p>
+    <h2>Earnings: $<span id="earnings">0.00</span></h2>
+    <script>
+        const hourlyRate = 17;
+        const startTime = new Date();
+        startTime.setHours(7, 30, 0, 0); // 7:30 AM today
+        const endTime = new Date();
+        endTime.setHours(16, 0, 0, 0); // 4:00 PM today
+
+        function updateEarnings() {
+            const now = new Date();
+            let earnings = 0;
+
+            // If current time is before start, earnings are $0
+            if (now < startTime) {
+                earnings = 0;
+            }
+            // If current time is after end, calculate for full period
+            else if (now > endTime) {
+                const hoursWorked = (endTime - startTime) / (1000 * 60 * 60); // Convert ms to hours
+                earnings = hoursWorked * hourlyRate;
+            }
+            // If current time is within work hours, calculate up to now
+            else {
+                const hoursWorked = (now - startTime) / (1000 * 60 * 60); // Convert ms to hours
+                earnings = hoursWorked * hourlyRate;
+            }
+
+            // Display earnings rounded to 2 decimal places
+            document.getElementById('earnings').textContent = earnings.toFixed(2);
+        }
+
+        // Update every second
+        setInterval(updateEarnings, 1000);
+        // Initial call to avoid delay
+        updateEarnings();
+    </script>
+</body>
+</html>
