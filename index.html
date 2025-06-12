@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WageWatcher – Real-Time Earnings + Points</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f0;
+      color: #333;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+    }
+
+    #mainContainer {
+      max-width: 700px;
+      width: 100%;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+      padding: 30px 40px;
+      box-sizing: border-box;
+    }
+
+    nav {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: #2e8b57;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2e8b57;
+      margin-bottom: 5px;
+    }
+    p.subheading {
+      text-align: center;
+      color: #555;
+      margin-bottom: 25px;
+    }
+
+    /* Earnings */
+    .earnings-container {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .earnings-box {
+      display: inline-block;
+      width: 45%;
+      padding: 15px;
+      margin: 10px;
+      background: #eaf6ea;
+      border: 2px solid #2e8b57;
+      border-radius: 10px;
+    }
+    .earnings-box div:first-child {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    #earnings, #earningsAfterTax {
+      font-weight: bold;
+      font-size: 2.2em;
+      color: #2e8b57;
+    }
+    .label-above {
+      font-size: 1em;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    /* Delivery controls */
+    #deliveryContainer {
+      text-align: center;
+      margin-top: 20px;
+    }
+    #deliveryCount {
+      font-size: 2.5em;
+      margin: 0 20px;
+      display: inline-block;
+      min-width: 50px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 8px;
+      background: #2e8b57;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #256b44;
+    }
+
+    #addDeliveryBtn {
+      margin-top: 30px;
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+
+    /* Popup */
+    #popupMessage {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #2e8b57;
+      color: white;
+      padding: 20px 40px;
+      font-size: 1.8em;
+      border-radius: 15px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease-in-out;
+      z-index: 1000;
+    }
+    #popupMessage.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Points & Shop */
+    #pointsSection, #shopSection {
+      text-align: center;
+      background: #f3fdf3;
+      border: 2px solid #2e8b57;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 40px;
+    }
+
+    #pointTotal {
+      font-size: 1.3em;
+      margin-bottom: 10px;
+    }
+    #shopSection p {
+      font-size: 1.1em;
+      margin: 10px 0;
+    }
+    #medalMessage {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="mainContainer">
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Log</a>
+    <a href="#">About</a>
+  </nav>
+
+  <h1>WageWatcher</h1>
+  <p class="subheading">Mock Pay Counter – 7:30 AM to 4:00 PM at $17/hour</p>
+
+  <div class="earnings-container">
+    <div class="earnings-box">
+      <div class="label-above">Earnings (Before Tax)</div>
+      <div id="earnings">$0.00</div>
+    </div>
+    <div class="earnings-box">
+      <div class="label-above">Earnings (After 10.51% Tax)</div>
+      <div id="earningsAfterTax">$0.00</div>
+    </div>
+  </div>
+
+  <div id="deliveryContainer">
+    <h2>Deliveries Made</h2>
+    <button id="decreaseDeliveryBtn" aria-label="Decrease deliveries">−</button>
+    <span id="deliveryCount" aria-live="polite">0</span>
+    <button id="increaseDeliveryBtn" aria-label="Increase deliveries">+</button>
+    <br>
+    <button id="addDeliveryBtn">Add Delivery</button>
+  </div>
+
+  <div id="pointsSection">
+    <h2>🎁 Daily Check-In</h2>
+    <p id="pointTotal">Points: 0</p>
+    <button id="checkInBtn">Claim 100 Points</button>
+  </div>
+
+  <div id="shopSection">
+    <h2>🏆 Point Shop</h2>
+    <p><strong>✨ “Go F*** Yourself” Medal</strong> – 300 Points</p>
+    <button id="buyMedalBtn">Buy Medal</button>
+    <p id="medalMessage"></p>
+  </div>
+</div>
+
+<div id="popupMessage" role="alert" aria-live="assertive"></div>
+
+<script>
+  const hourlyRate = 17;
+  const taxRate = 0.1051;
+  const startHour = 7, startMinute = 30;
+  const endHour = 16, endMinute = 0;
+
+  let deliveries = 0;
+  const positiveMessages = ["Cool!", "Wow!", "Nice!"];
+
+  const earningsEl = document.getElementById('earnings');
+  const earningsAfterTaxEl = document.getElementById('earningsAfterTax');
+  const deliveryCountEl = document.getElementById('deliveryCount');
+  const popupMessage = document.getElementById('popupMessage');
+
+  const checkInBtn = document.getElementById('checkInBtn');
+  const pointTotalEl = document.getElementById('pointTotal');
+  const buyMedalBtn = document.getElementById('buyMedalBtn');
+  const medalMessage = document.getElementById('medalMessage');
+
+  function getStartTime() {
+    const t = new Date();
+    t.setHours(startHour, startMinute, 0, 0);
+    return t;
+  }
+
+  function getEndTime() {
+    const t = new Date();
+    t.setHours(endHour, endMinute, 0, 0);
+    return t;
+  }
+
+  function updateEarnings() {
+    const now = new Date();
+    const start = getStartTime();
+    const end = getEndTime();
+    let earned = 0;
+
+    if (now > start && now < end) {
+      earned = ((now - start) / (1000 * 60 * 60)) * hourlyRate;
+    } else if (now >= end) {
+      earned = ((end - start) / (1000 * 60 * 60)) * hourlyRate;
+    }
+
+    earningsEl.textContent = `$${earned.toFixed(2)}`;
+    earningsAfterTaxEl.textContent = `$${(earned * (1 - taxRate)).toFixed(2)}`;
+  }
+
+  function updateDeliveryCount() {
+    if (deliveries < 0) deliveries = 0;
+    deliveryCountEl.textContent = deliveries;
+  }
+
+  function showPopupMessage() {
+    const msg = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
+    popupMessage.textContent = msg;
+    popupMessage.classList.add('show');
+    setTimeout(() => popupMessage.classList.remove('show'), 1300);
+  }
+
+  function adjustDeliveries(n) {
+    deliveries += n;
+    if (deliveries < 0) deliveries = 0;
+    updateDeliveryCount();
+  }
+
+  document.getElementById('increaseDeliveryBtn').onclick = () => adjustDeliveries(1);
+  document.getElementById('decreaseDeliveryBtn').onclick = () => adjustDeliveries(-1);
+  document.getElementById('addDeliveryBtn').onclick = () => {
+    adjustDeliveries(1);
+    showPopupMessage();
+  };
+
+  function getPoints() {
+    return parseInt(localStorage.getItem('points') || '0', 10);
+  }
+
+  function setPoints(val) {
+    localStorage.setItem('points', val);
+    pointTotalEl.textContent = "Points: " + val;
+  }
+
+  function canCheckInToday() {
+    const last = localStorage.getItem('lastCheckInDate');
+    const today = new Date().toISOString().split('T')[0];
+    return last !== today;
+  }
+
+  checkInBtn.onclick = () => {
+    if (canCheckInToday()) {
+      const pts = getPoints() + 100;
+      setPoints(pts);
+      localStorage.setItem('lastCheckInDate', new Date().toISOString().split('T')[0]);
+      alert("✅ You've earned 100 points!");
+    } else {
+      alert("⏳ Already claimed today.");
+    }
+  };
+
+  buyMedalBtn.onclick = () => {
+    const pts = getPoints();
+    if (pts >= 300) {
+      setPoints(pts - 300);
+      medalMessage.textContent = "🏅 You bought the ‘Go F*** Yourself’ Medal!";
+    } else {
+      medalMessage.textContent = "❌ Not enough points. Try again later.";
+    }
+  };
+
+  setPoints(getPoints());
+  updateDeliveryCount();
+  updateEarnings();
+  setInterval(updateEarnings, 1000);
+</script>
+
+</body>
+</html>
