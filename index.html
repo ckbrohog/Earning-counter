@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WageWatcher</title>
+  <style>
+    /* Base styles */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f9f7;
+      color: #333;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    body.night {
+      background: #121212;
+      color: #ddd;
+    }
+
+    #mainContainer {
+      max-width: 650px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      padding: 30px 40px 50px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    body.night #mainContainer {
+      background: #1f1f1f;
+    }
+
+    nav {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    nav a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: #2e8b57;
+      font-weight: 600;
+      font-size: 1.2em;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2e8b57;
+      margin-bottom: 5px;
+    }
+    p {
+      text-align: center;
+      font-size: 1.1em;
+      margin: 0 0 25px;
+      color: #555;
+    }
+
+    .earnings-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .earnings-box {
+      display: inline-block;
+      width: 45%;
+      padding: 15px 20px;
+      margin: 0 10px;
+      border: 2px solid #2e8b57;
+      border-radius: 8px;
+      background-color: #eaf6ea;
+      box-sizing: border-box;
+      transition: background 0.4s ease;
+    }
+
+    body.night .earnings-box {
+      background-color: #263c30;
+      border-color: #4caf50;
+    }
+
+    #earnings, #earningsAfterTax {
+      font-weight: bold;
+      font-size: 2.4em;
+      color: #2e8b57;
+    }
+
+    body.night #earnings, body.night #earningsAfterTax {
+      color: #76ff03;
+    }
+  </style>
+</head>
+<body>
+  <div id="mainContainer">
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="log.html">Log</a>
+      <a href="about.html">About Us</a>
+    </nav>
+
+    <h1>WageWatcher</h1>
+    <p><strong>Mock Pay:</strong> 7:30 AM to 4:00 PM @ $17/hr</p>
+
+    <div class="earnings-container">
+      <div class="earnings-box">
+        <div>Earnings (Before Tax)</div>
+        <div id="earnings">$0.00</div>
+      </div>
+      <div class="earnings-box">
+        <div>Earnings (After 10.51% Tax)</div>
+        <div id="earningsAfterTax">$0.00</div>
+      </div>
+    </div>
+    <div id="deliveryContainer">
+      <h2>Deliveries Made</h2>
+      <button id="decreaseDeliveryBtn" aria-label="Subtract one delivery">-</button>
+      <span id="deliveryCount" aria-live="polite" aria-atomic="true">0</span>
+      <button id="increaseDeliveryBtn" aria-label="Add one delivery">+</button>
+
+      <button id="addDeliveryBtn">Add Delivery</button>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+      <h2>Daily Check-In</h2>
+      <button id="checkInBtn">Check In (+100 pts)</button>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+      <h2>Your Points: <span id="pointsDisplay">0</span></h2>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+      <h2>Point Shop</h2>
+      <button id="buyMedalBtn">Buy “Go F*** Yourself” Medal (300 pts)</button>
+    </div>
+
+    <div id="popupMessage" role="alert" aria-live="assertive"></div>
+
+    <!-- Rockets & kittens animation container -->
+    <div id="animationContainer" style="position: fixed; pointer-events: none; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000;"></div>
+
+    <!-- Night mode toggle -->
+    <div style="text-align: center; margin-top: 40px;">
+      <button id="toggleNightMode">Toggle Night Mode</button>
+    </div>
+  </div>
+<script>
+  // Constants
+  const hourlyRate = 17;
+  const taxRate = 0.1051;
+  const startHour = 7, startMinute = 30;
+  const endHour = 16, endMinute = 0;
+
+  // DOM Elements
+  const earningsEl = document.getElementById('earnings');
+  const earningsAfterTaxEl = document.getElementById('earningsAfterTax');
+  const deliveryCountEl = document.getElementById('deliveryCount');
+  const increaseDeliveryBtn = document.getElementById('increaseDeliveryBtn');
+  const decreaseDeliveryBtn = document.getElementById('decreaseDeliveryBtn');
+  const addDeliveryBtn = document.getElementById('addDeliveryBtn');
+  const checkInBtn = document.getElementById('checkInBtn');
+  const pointsDisplay = document.getElementById('pointsDisplay');
+  const buyMedalBtn = document.getElementById('buyMedalBtn');
+  const popupMessage = document.getElementById('popupMessage');
+  const toggleNightMode = document.getElementById('toggleNightMode');
+  const animationContainer = document.getElementById('animationContainer');
+
+  // Persistent state
+  let deliveries = parseInt(localStorage.getItem('deliveries') || '0');
+  let points = parseInt(localStorage.getItem('points') || '0');
+  let lastCheckIn = localStorage.getItem('lastCheckIn') || '';
+
+  function updateEarnings() {
+    const now = new Date();
+    const startTime = new Date();
+    startTime.setHours(startHour, startMinute, 0, 0);
+    const endTime = new Date();
+    endTime.setHours(endHour, endMinute, 0, 0);
+
+    let earnings = 0;
+    if (now < startTime) {
+      earnings = 0;
+    } else if (now > endTime) {
+      const totalHours = (endTime - startTime) / (1000 * 60 * 60);
+      earnings = totalHours * hourlyRate;
+    } else {
+      const hoursWorked = (now - startTime) / (1000 * 60 * 60);
+      earnings = hoursWorked * hourlyRate;
+    }
+
+    earningsEl.textContent = `$${earnings.toFixed(2)}`;
+    earningsAfterTaxEl.textContent = `$${(earnings * (1 - taxRate)).toFixed(2)}`;
+  }
+
+  function updateDeliveryCount() {
+    deliveryCountEl.textContent = deliveries;
+    localStorage.setItem('deliveries', deliveries);
+  }
+
+  function updatePointsDisplay() {
+    pointsDisplay.textContent = points;
+    localStorage.setItem('points', points);
+  }
+
+  function showPopup(text) {
+    popupMessage.textContent = text;
+    popupMessage.classList.add('show');
+    setTimeout(() => popupMessage.classList.remove('show'), 1200);
+  }
+
+  function doAnimation() {
+    for (let i = 0; i < 10; i++) {
+      const img = document.createElement('img');
+      img.src = i % 2 === 0
+        ? 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Rocket_Emoji.png/72px-Rocket_Emoji.png'
+        : 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Cat_emoji_u1f408.svg/72px-Cat_emoji_u1f408.svg.png';
+      img.style.position = 'absolute';
+      img.style.left = `${Math.random() * 100}%`;
+      img.style.bottom = '-100px';
+      img.style.width = '40px';
+      img.style.transition = 'bottom 3s ease-out, transform 3s ease-in';
+      animationContainer.appendChild(img);
+
+      requestAnimationFrame(() => {
+        img.style.bottom = '110%';
+        img.style.transform = 'rotate(360deg)';
+      });
+
+      setTimeout(() => img.remove(), 4000);
+    }
+  }
+
+  // Event listeners
+  increaseDeliveryBtn.onclick = () => { deliveries++; updateDeliveryCount(); };
+  decreaseDeliveryBtn.onclick = () => { deliveries = Math.max(0, deliveries - 1); updateDeliveryCount(); };
+  addDeliveryBtn.onclick = () => { deliveries++; updateDeliveryCount(); showPopup("Nice!"); };
+
+  checkInBtn.onclick = () => {
+    const today = new Date().toDateString();
+    if (lastCheckIn !== today) {
+      points += 100;
+      lastCheckIn = today;
+      localStorage.setItem('lastCheckIn', today);
+      updatePointsDisplay();
+      showPopup("+100 points!");
+    } else {
+      showPopup("Already checked in today!");
+    }
+  };
+
+  buyMedalBtn.onclick = () => {
+    if (points >= 300) {
+      points -= 300;
+      updatePointsDisplay();
+      showPopup("Purchased medal!");
+      doAnimation();
+    } else {
+      showPopup("Not enough points!");
+    }
+  };
+
+  toggleNightMode.onclick = () => {
+    document.body.classList.toggle('night');
+    localStorage.setItem('nightMode', document.body.classList.contains('night'));
+  };
+
+  // Initial setup
+  if (localStorage.getItem('nightMode') === 'true') {
+    document.body.classList.add('night');
+  }
+
+  updateDeliveryCount();
+  updatePointsDisplay();
+  updateEarnings();
+  setInterval(updateEarnings, 1000);
+</script>
+</body>
+</html>
