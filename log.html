@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WageWatcher – Daily Log</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+    }
+
+    nav {
+      background-color: #2e8b57;
+      padding: 10px;
+      text-align: center;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-weight: bold;
+    }
+
+    nav a.active {
+      text-decoration: underline;
+    }
+
+    h1 {
+      color: #2e8b57;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 0 auto;
+      width: 90%;
+      max-width: 800px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px 15px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #2e8b57;
+      color: white;
+    }
+
+    input[type="number"] {
+      width: 100px;
+      font-size: 1em;
+      padding: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="log.html" class="active">Log</a>
+    <a href="about.html">About Us</a>
+  </nav>
+
+  <h1>Daily Log</h1>
+  <p style="text-align:center; max-width: 700px; margin: 0 auto 20px;">
+    Here you can see your deliveries per day and manually input your earnings if you want.
+  </p>
+
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Deliveries</th>
+        <th>Manual Earnings ($)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- rows inserted here -->
+    </tbody>
+  </table>
+
+  <script>
+    const logTableBody = document.querySelector('#logTable tbody');
+
+    function getDailyLog() {
+      return JSON.parse(localStorage.getItem('dailyLog') || "{}");
+    }
+
+    function saveDailyLog(log) {
+      localStorage.setItem('dailyLog', JSON.stringify(log));
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function renderLog() {
+      const log = getDailyLog();
+      logTableBody.innerHTML = '';
+
+      // Sort dates descending (most recent first)
+      const dates = Object.keys(log).sort((a,b) => new Date(b) - new Date(a));
+
+      if(dates.length === 0) {
+        logTableBody.innerHTML = `<tr><td colspan="3">No logs yet.</td></tr>`;
+        return;
+      }
+
+      dates.forEach(dateStr => {
+        const dayLog = log[dateStr];
+        const deliveries = dayLog.deliveries || 0;
+        const manualEarnings = dayLog.manualEarnings || '';
+
+        const row = document.createElement('tr');
+
+        const dateCell = document.createElement('td');
+        dateCell.textContent = formatDate(dateStr);
+
+        const deliveriesCell = document.createElement('td');
+        deliveriesCell.textContent = deliveries;
+
+        const earningsCell = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = "number";
+        input.min = "0";
+        input.step = "0.01";
+        input.value = manualEarnings;
+        input.placeholder = "Enter earnings";
+
+        input.addEventListener('input', () => {
+          const val = input.value.trim();
+          let log = getDailyLog();
+          log[dateStr] = log[dateStr] || {};
+          if(val === '') {
+            delete log[dateStr].manualEarnings;
+          } else {
+            log[dateStr].manualEarnings = parseFloat(val);
+          }
+          saveDailyLog(log);
+        });
+
+        earningsCell.appendChild(input);
+
+        row.appendChild(dateCell);
+        row.appendChild(deliveriesCell);
+        row.appendChild(earningsCell);
+
+        logTableBody.appendChild(row);
+      });
+    }
+
+    renderLog();
+  </script>
+</body>
+</html>
